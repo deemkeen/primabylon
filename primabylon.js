@@ -2,15 +2,6 @@ var Messages = new Meteor.Collection("messages");
 
 if (Meteor.isClient) {
 
-  /*$(function(){ //http://jsfiddle.net/xavi3r/Wq5fW/
-    var width = 0;
-    $('#overflow .container div').each(function() {
-        width += $(this).outerWidth( true );
-    });
-    $('#overflow .container').css('width', width + "px");
-    alert(width);
-  });*/
-
   // Yahoo Query Language Wrapper for jQuery
   $.YQL = function(query, callback) {
    
@@ -95,7 +86,6 @@ if (Meteor.isClient) {
   });
 
 }
-
 
 if (Meteor.isServer) {
   Meteor.startup(function () {
