@@ -8,43 +8,42 @@
 
 <template name="hello">
 	<div class="container">
-
-			<h2>TChat</h2>
-			<br>
-			<div class="fluid-row">
-				<legend>Translate your messages</legend>
-			  	<div class="span3">
-			  		<label>From:</label>
-			  		<input type="text" name="sl" value="de">
-			  	</div>
-			  	<div class="span3">
-			  		<label>To:</label>
-			  		<input type="text" name="tl" value="ru">
-			 	 </div>
-			 </div>
-			 <div class="fluid-row">
-				<div class="span6" id="chatbox">
-					{{#if anyMessages}}{{> line}}{{/if}}
-				</div>
+		<h2>TChat</h2>
+		<br>
+		<div class="fluid-row">
+			<legend>Translate your messages</legend>
+		  	<div class="span3">
+		  		<label>From:</label>
+		  		<input type="text" name="sl" value="de">
+		  	</div>
+		  	<div class="span3">
+		  		<label>To:</label>
+		  		<input type="text" name="tl" value="ru">
+		 	 </div>
+		 </div>
+		 <div class="fluid-row">
+			<div class="span6" id="chatbox">
+				{{#if anyMessages}}{{> line}}{{/if}}
 			</div>
-
-			<div class="fluid-row">
-				<div class="span6">
-					<label><b>Message:</b></label>
-					<input type="text" class="input-xlarge" id="mymessage">
-				</div>
+		</div>
+		<div class="fluid-row">
+			<div class="span6">
+				<label><b>Message:</b></label>
+				<input type="text" class="input-xlarge" id="mymessage">
 			</div>
-
+		</div>
 	</div>
 </template>
 
 
 <template name="line">
-		<div id="outter">
-			<div id="textlines">
-				{{#each MessageList}}
-					<pre><b>{{time}}&nbsp;>&nbsp;{{text}}</b></pre>
-				{{/each}}
-			</div>
+	<div id="outter">
+		<div id="textlines">
+			{{#each MessageList}}
+				<pre>
+					<b>{{time}}&nbsp;>&nbsp;{{text}}</b>
+				</pre>
+			{{/each}}
 		</div>
+	</div>
 </template>
