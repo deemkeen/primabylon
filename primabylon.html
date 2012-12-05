@@ -8,29 +8,48 @@
 
 <template name="hello">
 	<div class="container">
-		<h2>TChat</h2>
+		<h2>Google Translate (c) - Chat</h2>
 		<br>
 		<div class="fluid-row">
-			<legend>Translate your messages</legend>
-		  	<div class="span3">
-		  		<label>From:</label>
-		  		<input type="text" name="sl" value="de">
-		  	</div>
-		  	<div class="span3">
-		  		<label>To:</label>
-		  		<input type="text" name="tl" value="ru">
-		 	 </div>
+			{{#unless chatUser}} {{> setuser}} {{/unless}}
+		 	 {{#if chatUser}} {{> chat}} {{/if}}
 		 </div>
-		 <div class="fluid-row">
-			<div class="span6" id="chatbox">
-				{{#if anyMessages}}{{> line}}{{/if}}
-			</div>
+	</div>
+</template>
+
+<template name="setuser">
+	<legend>Translate your messages</legend>
+	<div class="span3">
+		<label>Username:</label>
+		<input type="text" name="username">
+	</div>
+	<div class="span3">
+		<label>Language:</label>
+	<select id="sl">  
+	            <option value="de">German</option>  
+	            <option value="en">English</option>  
+	            <option value="ru">Russian</option>  
+	            <option value="es">Spanish</option>  
+	            <option value="fr">French</option>
+	            <option value="it">Italian</option>  
+	</select> 
+	</div>
+	<div class="span3">
+	 	<br>
+		<a class="btn-info btn-large" id="btn-sess">Let's Talk!</a>
+	</div>
+</template>
+
+<template name="chat">
+	 <div class="fluid-row">
+		<div class="span6" id="chatbox">
+			{{#if anyMessages}}{{> line}}{{/if}}
 		</div>
-		<div class="fluid-row">
-			<div class="span6">
-				<label><b>Message:</b></label>
-				<input type="text" class="input-xlarge" id="mymessage">
-			</div>
+	</div>
+	<div class="fluid-row">
+		<div class="span6">
+			<label><b>Message:</b></label>
+			<input type="text" class="input-xlarge" id="mymessage">
 		</div>
 	</div>
 </template>
@@ -40,9 +59,7 @@
 	<div id="outter">
 		<div id="textlines">
 			{{#each MessageList}}
-				<pre>
-					<b>{{time}}&nbsp;>&nbsp;{{text}}</b>
-				</pre>
+				<pre>[{{time}}]&nbsp;{{user}}&nbsp;>&nbsp;{{text}}</pre>
 			{{/each}}
 		</div>
 	</div>
