@@ -1,7 +1,7 @@
 // Global-Part
 
 var Messages = new Meteor.Collection("messages");
-
+var Translations = new Meteor.Collection("translations");
 
 // helper function
 
@@ -47,7 +47,7 @@ if (Meteor.isClient) {
     };
 
     // global helper: Works for all Templates!
-    Handlebars.registerHelper('anyMessages', function() {
+    Handlebars.registerHelper('lastMessage', function() {
         return Messages.find().count() > 0;
     });
 
@@ -61,51 +61,10 @@ if (Meteor.isClient) {
     ////////////////////////////////////////////////////////////////////////////////////
     Template.line.MessageList = function() {
 
-        var userlang = Session.get("sl");
-        var MessageList = [];
+        var sessionlang = Session.get("sl");
+        Messages.remove({});
+        return Translations.find({userlang: sessionlang}, {sort: {created: 1}});
 
-        MessageList = Messages.find({}, { sort: { created: 1} }).fetch();
-
-        MessageList.forEach( function(message) {
-            if (message.userlang !== userlang) {
-                
-                if (message.transtext.userlang) {
-                    message.text = message.transtext.userlang;
-                }
-                else {
-
-                    var yq = encodeURIComponent("select json.json.json from google.translate where q='" + addslashes(text) + "' and source='" + message.userlang + "' and target='" + userlang + "' limit 1");
-
-                    $.YQL(yq, function(data) {
-
-                        var post = data.query.results.json.json.json.json;
-
-                        if (post) {
-
-                            var curdate = new Date();
-                            var curtime = timeformat(curdate);
-
-                            Messages.insert(
-                            { _id: message._id},
-                            {
-                                $set: {
-                                    transtext: [ {userlang : post}]
-                                }
-                            });
-
-                        }
-
-                    });
-
-                }
-
-            }
-
-            //console.log("Message Lang: " + message.userlang + " User Lang " + userlang);
-        });
-
-
-        return MessageList;
     };
 
     Template.line.rendered = function() {
@@ -122,52 +81,61 @@ if (Meteor.isClient) {
                 var text = $('#mymessage').val();
 
                 var sl = $('#sl').val();
-                var tl = "en";
 
-                if (text == '#remove') { // Debug
-                    $('#mymessage').val('');
-                    return Messages.remove({});
-                }
+                var curdate = new Date();
+                var curtime = timeformat(curdate);
 
-                var yq = encodeURIComponent("select json.json.json from google.translate where q='" + addslashes(text) + "' and source='" + Session.get("sl") + "' and target='" + tl + "' limit 1");
-
-                $.YQL(yq, function(data) {
-
-                    var post = data.query.results.json.json.json.json;
-
-                    if (post) {
-
-                        var curdate = new Date();
-                        var curtime = timeformat(curdate);
-
-                        Messages.insert({
-                            text: post,
-                            user: Session.get("username"),
-                            userlang: Session.get("sl"),
-                            created: curdate,
-                            time: curtime
-                        });
-
-                    }
-
+                Messages.insert({
+                    text: text,
+                    user: Session.get("username"),
+                    userlang: Session.get("sl"),
+                    created: curdate,
+                    time: curtime,
+                    processed: 0
                 });
+
+                //Messages.update({ userlang: sessionlang}, {$set: {processed: 1}});
+                //Messages.remove({});
+
             }
         },
-
         "click #btn-sess" : function () {
             
             var username = $('input:text[name=username]').val();
             var sl = $('#sl').val();
 
             if (username && sl) {
+
                 Session.set("username", username);
-                Session.set("sl", sl);
+                var sessionlang = Session.set("sl", sl);
+
+                Messages.find({processed: 0}, { sort: { created: 1} }).forEach( function(message) {
+
+                    if (message.userlang != sessionlang) {
+
+                          var yq = encodeURIComponent("select json.json.json from google.translate where q='" + addslashes(message.text) + "' and source='" + message.userlang + "' and target='" + sessionlang + "' limit 1");
+
+                        $.YQL(yq, function(data) {
+
+                            var post = data.query.results.json.json.json.json;
+
+                           if (post) {
+                                Translations.insert({text: post, user: message.user, userlang: Session.get("sl"), created: message.created, time: message.time});
+                            } else {
+                                Translations.insert({text: "No Translation", user: message.user, userlang: Session.get("sl"), created: message.created, time: message.time});
+                            }
+
+                        });
+                    } else {
+                        Translations.insert({text: message.text, user: message.user, userlang: Session.get("sl"), created: message.created, time: message.time});
+                    }
+                });
+                
+                Messages.update({ userlang: sessionlang}, {$set: {processed: 1}});
+
             }
         }
-
-
     });
-
 }
 
 // Server-Part
@@ -176,6 +144,11 @@ if (Meteor.isServer) {
     Meteor.startup(function() {
 
         Messages.remove({});
+        Translations.remove({});
+
+        //Messages._ensureIndex({created:1, userlang: 1}, {unique: true});
+        //Translations._ensureIndex({created:1, userlang: 1}, {unique: true});
 
     });
+
 }

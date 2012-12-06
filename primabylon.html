@@ -8,7 +8,7 @@
 
 <template name="hello">
 	<div class="container">
-		<h2>Google Translate (c) - Chat</h2>
+		<h2>TC</h2>
 		<br>
 		<div class="fluid-row">
 			{{#unless chatUser}} {{> setuser}} {{/unless}}
@@ -43,7 +43,7 @@
 <template name="chat">
 	 <div class="fluid-row">
 		<div class="span6" id="chatbox">
-			{{#if anyMessages}}{{> line}}{{/if}}
+			{{> line}}
 		</div>
 	</div>
 	<div class="fluid-row">
