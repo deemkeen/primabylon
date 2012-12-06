@@ -46,10 +46,6 @@ if (Meteor.isClient) {
 
     };
 
-    // global helper: Works for all Templates!
-    Handlebars.registerHelper('lastMessage', function() {
-        return Messages.find().count() > 0;
-    });
 
     // global helper: is the Session set?
     Handlebars.registerHelper('chatUser', function() {
@@ -61,9 +57,38 @@ if (Meteor.isClient) {
     ////////////////////////////////////////////////////////////////////////////////////
     Template.line.MessageList = function() {
 
-        var sessionlang = Session.get("sl");
-        Messages.remove({});
-        return Translations.find({userlang: sessionlang}, {sort: {created: 1}});
+        isTranslated = false;
+
+        Messages.find({processed: 0}, { sort: { created: 1} }).forEach( function(message) {
+
+            if (message.userlang != Session.get("sl")) {
+
+                console.log("Da gehe ich nur für übersetzung rein!");
+
+                var yq = encodeURIComponent("select json.json.json from google.translate where q='" + addslashes(message.text) + "' and source='" + message.userlang + "' and target='" +  Session.get("sl") + "' limit 1");
+
+                $.YQL(yq, function(data) {
+
+                    var post = data.query.results.json.json.json.json;
+
+                    if (post) {
+                        Translations.insert({text: post,
+                                             user: message.user,
+                                             userlang: Session.get("sl"),
+                                             created: message.created,
+                                             time: message.time});
+
+                        isTranslated = true;
+                    } 
+
+                });
+            } 
+        });
+        
+        if (isTranslated)
+            Messages.update({userlang: Session.get("sl")}, {$set: {processed: 1}});
+
+        return Translations.find({userlang: Session.get("sl")}, {sort: {created: 1}});
 
     };
 
@@ -79,23 +104,23 @@ if (Meteor.isClient) {
             if (code == 13) {
 
                 var text = $('#mymessage').val();
-
-                var sl = $('#sl').val();
-
                 var curdate = new Date();
                 var curtime = timeformat(curdate);
 
-                Messages.insert({
-                    text: text,
-                    user: Session.get("username"),
-                    userlang: Session.get("sl"),
-                    created: curdate,
-                    time: curtime,
-                    processed: 0
+                Messages.insert({text: text,
+                                 user: Session.get("username"),
+                                 userlang: Session.get("sl"),
+                                 created: curdate,
+                                 time: curtime,
+                                 processed: 0
                 });
 
-                //Messages.update({ userlang: sessionlang}, {$set: {processed: 1}});
-                //Messages.remove({});
+                Translations.insert({text: text, 
+                                     user: Session.get("username"),
+                                     userlang: Session.get("sl"),
+                                     created: curdate,
+                                     time: curtime
+                });                
 
             }
         },
@@ -107,31 +132,7 @@ if (Meteor.isClient) {
             if (username && sl) {
 
                 Session.set("username", username);
-                var sessionlang = Session.set("sl", sl);
-
-                Messages.find({processed: 0}, { sort: { created: 1} }).forEach( function(message) {
-
-                    if (message.userlang != sessionlang) {
-
-                          var yq = encodeURIComponent("select json.json.json from google.translate where q='" + addslashes(message.text) + "' and source='" + message.userlang + "' and target='" + sessionlang + "' limit 1");
-
-                        $.YQL(yq, function(data) {
-
-                            var post = data.query.results.json.json.json.json;
-
-                           if (post) {
-                                Translations.insert({text: post, user: message.user, userlang: Session.get("sl"), created: message.created, time: message.time});
-                            } else {
-                                Translations.insert({text: "No Translation", user: message.user, userlang: Session.get("sl"), created: message.created, time: message.time});
-                            }
-
-                        });
-                    } else {
-                        Translations.insert({text: message.text, user: message.user, userlang: Session.get("sl"), created: message.created, time: message.time});
-                    }
-                });
-                
-                Messages.update({ userlang: sessionlang}, {$set: {processed: 1}});
+                Session.set("sl", sl);
 
             }
         }
@@ -146,8 +147,8 @@ if (Meteor.isServer) {
         Messages.remove({});
         Translations.remove({});
 
-        //Messages._ensureIndex({created:1, userlang: 1}, {unique: true});
-        //Translations._ensureIndex({created:1, userlang: 1}, {unique: true});
+        Messages._ensureIndex({created:1, userlang: 1}, {unique: true});
+        Translations._ensureIndex({created:1, userlang: 1}, {unique: true});
 
     });
 
