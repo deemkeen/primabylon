@@ -2,6 +2,7 @@
 
 var Messages = new Meteor.Collection("messages");
 var Translations = new Meteor.Collection("translations");
+var isTranslated = false;
 
 // helper function
 
@@ -59,11 +60,11 @@ if (Meteor.isClient) {
 
         isTranslated = false;
 
-        Messages.find({processed: 0}, { sort: { created: 1} }).forEach( function(message) {
+        Messages.find({}, { sort: { created: 1} }).forEach( function(message) {
 
-            if (message.userlang != Session.get("sl")) {
+            if (message.userlang != Session.get("sl") && $.inArray(Session.get("sl"), message.languages) != 0) {
 
-                console.log("Da gehe ich nur für übersetzung rein!");
+                console.log("Nachrichten in anderer Sprache und nicht verarbeitet!");
 
                 var yq = encodeURIComponent("select json.json.json from google.translate where q='" + addslashes(message.text) + "' and source='" + message.userlang + "' and target='" +  Session.get("sl") + "' limit 1");
 
@@ -72,28 +73,32 @@ if (Meteor.isClient) {
                     var post = data.query.results.json.json.json.json;
 
                     if (post) {
+
+                        isTranslated = true;
+
                         Translations.insert({text: post,
                                              user: message.user,
                                              userlang: Session.get("sl"),
                                              created: message.created,
                                              time: message.time});
 
-                        isTranslated = true;
+                        
                     } 
 
                 });
             } 
         });
         
-        if (isTranslated)
-            Messages.update({userlang: Session.get("sl")}, {$set: {processed: 1}});
-
         return Translations.find({userlang: Session.get("sl")}, {sort: {created: 1}});
 
     };
 
     Template.line.rendered = function() {
         $('#mymessage').val('');
+        
+        if(isTranslated) {
+            Messages.update({}, {$push: {languages: Session.get("sl")}});
+        }
     };
 
     Template.hello.events({
@@ -111,8 +116,7 @@ if (Meteor.isClient) {
                                  user: Session.get("username"),
                                  userlang: Session.get("sl"),
                                  created: curdate,
-                                 time: curtime,
-                                 processed: 0
+                                 time: curtime
                 });
 
                 Translations.insert({text: text, 
