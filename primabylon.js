@@ -3,6 +3,7 @@
 var Messages = new Meteor.Collection("messages");
 var Translations = new Meteor.Collection("translations");
 var isTranslated = false;
+var toTranslate = true;
 
 // helper function
 
@@ -32,7 +33,7 @@ if (Meteor.isClient) {
 
     Meteor.startup(function() {
         Session.set("username", undefined);
-        Session.set("sl", undefined);
+        Session.set("userlang", undefined);
     });
 
     // Yahoo Query Language Wrapper for jQuery
@@ -50,7 +51,7 @@ if (Meteor.isClient) {
 
     // global helper: is the Session set?
     Handlebars.registerHelper('chatUser', function() {
-        if (Session.get("username") && Session.get("sl")) {
+        if (Session.get("username") && Session.get("userlang")) {
             return true;
         }
     });
@@ -62,43 +63,69 @@ if (Meteor.isClient) {
 
         Messages.find({}, { sort: { created: 1} }).forEach( function(message) {
 
-            if (message.userlang != Session.get("sl") && $.inArray(Session.get("sl"), message.languages) != 0) {
+            if (message.userlang != Session.get("userlang")) {
 
-                console.log("Nachrichten in anderer Sprache und nicht verarbeitet!");
+                toTranslate = true;
 
-                var yq = encodeURIComponent("select json.json.json from google.translate where q='" + addslashes(message.text) + "' and source='" + message.userlang + "' and target='" +  Session.get("sl") + "' limit 1");
+                for (lang in message.languages) {
 
-                $.YQL(yq, function(data) {
+                    if (message.languages[lang] == Session.get("userlang")) {
 
-                    var post = data.query.results.json.json.json.json;
-
-                    if (post) {
-
-                        isTranslated = true;
-
-                        Translations.insert({text: post,
-                                             user: message.user,
-                                             userlang: Session.get("sl"),
-                                             created: message.created,
-                                             time: message.time});
-
+                        console.log("Übersetzung für Message vorhanden");
                         
+                        toTranslate = false;
+                        
+                        break;
+
                     } 
 
-                });
+                }
+
+                if (toTranslate) {
+
+                        console.log("Nachrichten in anderer Sprache und nicht verarbeitet!");
+
+                        var yq = encodeURIComponent("select json.json.json from google.translate where q='" + addslashes(message.text) + "' and source='" + message.userlang + "' and target='" +  Session.get("userlang") + "' limit 1");
+
+                        $.YQL(yq, function(data) {
+
+                            var post = data.query.results.json.json.json.json;
+
+                            if (post) {
+
+                                isTranslated = true;
+
+                                Translations.insert({text: post,
+                                                     user: message.user,
+                                                     userlang: Session.get("userlang"),
+                                                     created: message.created,
+                                                     time: message.time});
+
+                                
+                            } 
+
+                        });
+
+                }
+
+
             } 
+
         });
         
-        return Translations.find({userlang: Session.get("sl")}, {sort: {created: 1}});
+        return Translations.find({userlang: Session.get("userlang")}, {sort: {created: 1}});
 
     };
 
     Template.line.rendered = function() {
-        $('#mymessage').val('');
-        
+
         if(isTranslated) {
-            Messages.update({}, {$push: {languages: Session.get("sl")}});
+
+            Messages.update({languages: { $nin: [Session.get("userlang")]} }, {$push: {languages: Session.get("userlang")}});
         }
+
+        $('#mymessage').val('');
+
     };
 
     Template.hello.events({
@@ -114,14 +141,15 @@ if (Meteor.isClient) {
 
                 Messages.insert({text: text,
                                  user: Session.get("username"),
-                                 userlang: Session.get("sl"),
+                                 userlang: Session.get("userlang"),
                                  created: curdate,
-                                 time: curtime
+                                 time: curtime,
+                                 languages: [Session.get("userlang")]
                 });
 
                 Translations.insert({text: text, 
                                      user: Session.get("username"),
-                                     userlang: Session.get("sl"),
+                                     userlang: Session.get("userlang"),
                                      created: curdate,
                                      time: curtime
                 });                
@@ -131,12 +159,12 @@ if (Meteor.isClient) {
         "click #btn-sess" : function () {
             
             var username = $('input:text[name=username]').val();
-            var sl = $('#sl').val();
+            var userlang = $('#userlang').val();
 
-            if (username && sl) {
+            if (username && userlang) {
 
                 Session.set("username", username);
-                Session.set("sl", sl);
+                Session.set("userlang", userlang);
 
             }
         }
@@ -151,8 +179,8 @@ if (Meteor.isServer) {
         Messages.remove({});
         Translations.remove({});
 
-        Messages._ensureIndex({created:1, userlang: 1}, {unique: true});
-        Translations._ensureIndex({created:1, userlang: 1}, {unique: true});
+        //Messages._ensureIndex({created:1, userlang: 1}, {unique: true});
+        //Translations._ensureIndex({created:1, userlang: 1}, {unique: true});
 
     });
 
