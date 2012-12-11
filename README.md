@@ -8,4 +8,4 @@ are translated on the fly.
 
 Example:
 
-http://localhost.de
+http://primabylon.meteor.com/
