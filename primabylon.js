@@ -2,8 +2,8 @@
 
 var Messages = new Meteor.Collection("messages");
 var Translations = new Meteor.Collection("translations");
-var isTranslated = false;
-var toTranslate = true;
+var nowTranslated = false;
+var toTranslate = false;
 
 // helper function
 
@@ -59,7 +59,7 @@ if (Meteor.isClient) {
     ////////////////////////////////////////////////////////////////////////////////////
     Template.line.MessageList = function() {
 
-        isTranslated = false;
+        //nowTranslated = false;
 
         Messages.find({}, { sort: { created: 1} }).forEach( function(message) {
 
@@ -71,9 +71,10 @@ if (Meteor.isClient) {
 
                     if (message.languages[lang] == Session.get("userlang")) {
 
-                        console.log("Übersetzung für Message vorhanden");
+                        console.log("Übersetzung für Message "+ message.text + " in Sprache " + message.languages[lang] + " vorhanden");
                         
                         toTranslate = false;
+                        nowTranslated = false;
                         
                         break;
 
@@ -83,7 +84,7 @@ if (Meteor.isClient) {
 
                 if (toTranslate) {
 
-                        console.log("Nachrichten in anderer Sprache und nicht verarbeitet!");
+                        console.log("Nachricht "+ message.text +" wird in Sprache " + Session.get("userlang") + " übersetzt.");
 
                         var yq = encodeURIComponent("select json.json.json from google.translate where q='" + addslashes(message.text) + "' and source='" + message.userlang + "' and target='" +  Session.get("userlang") + "' limit 1");
 
@@ -93,7 +94,7 @@ if (Meteor.isClient) {
 
                             if (post) {
 
-                                isTranslated = true;
+                                nowTranslated = true;
 
                                 Translations.insert({text: post,
                                                      user: message.user,
@@ -101,13 +102,11 @@ if (Meteor.isClient) {
                                                      created: message.created,
                                                      time: message.time});
 
-                                
                             } 
 
                         });
 
                 }
-
 
             } 
 
@@ -119,12 +118,12 @@ if (Meteor.isClient) {
 
     Template.line.rendered = function() {
 
-        if(isTranslated) {
-
-            Messages.update({languages: { $nin: [Session.get("userlang")]} }, {$push: {languages: Session.get("userlang")}});
-        }
-
         $('#mymessage').val('');
+
+        if(nowTranslated) {
+            console.log("Aktualisiere Messages auf vorhandene Übersetzungen");
+            Messages.update({languages: { $nin: [Session.get("userlang")]} }, {$push: {languages: Session.get("userlang")}}, {multi: true});
+        }
 
     };
 
