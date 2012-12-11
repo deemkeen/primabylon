@@ -8,4 +8,4 @@ are translated on the fly.
 
 Example:
 
-http://primabylon.meteor.com/
+http://primabylon.meteor.com
