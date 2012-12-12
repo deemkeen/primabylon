@@ -131,7 +131,6 @@ if (Meteor.isClient) {
 
     Template.line.rendered = function() {
 
-        $('#mymessage').val('');
 
         // Dirty code - updating global message collection while rendering the translation
         if (nowTranslated) {
@@ -180,6 +179,9 @@ if (Meteor.isClient) {
                     created: curdate,
                     time: curtime
                 });
+
+                Meteor.flush();
+                $('#mymessage').val('');
 
             }
         },
