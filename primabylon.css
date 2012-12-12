@@ -1,10 +1,7 @@
 /* CSS declarations go here */
 
 #outer {
-	position: absolute;
-	left: 0;
 	width: 100%;
-	bottom: 0;
 }
 
 #textlines {
