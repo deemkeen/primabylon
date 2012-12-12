@@ -12,9 +12,9 @@ function addslashes(str) {
 // helper time format (time object)
 function timeformat(obj) {
 
-    var currentHours = obj.getHours();
-    var currentMinutes = obj.getMinutes();
-    var currentSeconds = obj.getSeconds();
+    var currentHours = obj.getUTCHours();
+    var currentMinutes = obj.getUTCMinutes();
+    var currentSeconds = obj.getUTCSeconds();
 
     currentHours = (currentHours < 10 ? "0": "") + currentHours;
     currentMinutes = (currentMinutes < 10 ? "0": "") + currentMinutes;
