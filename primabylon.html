@@ -1,9 +1,9 @@
 <head>
-  <title>primabylon</title>
+	<title>primabylon</title>
 </head>
 
 <body>
-  {{> hello}}
+	{{> hello}}
 </body>
 
 <template name="hello">
@@ -11,8 +11,8 @@
 		<div class="fluid-row">
 			<legend>GoogleTranslate Your Thoughts for Everyone!</legend>
 			{{#unless chatUser}} {{> setuser}} {{/unless}}
-		 	{{#if chatUser}} {{> chat}} {{/if}}
-		 </div>
+			{{#if chatUser}} {{> chat}} {{/if}}
+		</div>
 	</div>
 </template>
 
@@ -24,26 +24,24 @@
 		</div>
 		<div class="span3">
 			<label>Language:</label>
-		<select id="userlang">  
-		            <option value="de">German</option>  
-		            <option value="en">English</option>  
-		            <option value="ru">Russian</option>  
-		            <option value="es">Spanish</option>  
-		            <option value="pt">Portuguese</option> 
-		            <option value="fr">French</option>
-		            <option value="it">Italian</option>  
-		            <option value="da">Danish</option>  
-
-		</select> 
+			<select id="userlang">  
+				<option value="de">German</option>  
+				<option value="en">English</option>  
+				<option value="ru">Russian</option>  
+				<option value="es">Spanish</option>  
+				<option value="pt">Portuguese</option> 
+				<option value="fr">French</option>
+				<option value="it">Italian</option>  
+				<option value="da">Danish</option>  
+			</select> 
 
 			<a class="btn btn-primary" id="btn-sess">Let's Talk!</a>
-
 		</div>
 	</div>
 </template>
 
 <template name="chat">
-	 <div class="fluid-row">
+	<div class="fluid-row">
 		<div class="span6" id="chatbox">
 			{{> line}}
 		</div>
@@ -56,9 +54,8 @@
 	</div>
 </template>
 
-
 <template name="line">
-	<div id="outter">
+	<div id="outer">
 		<div id="textlines">
 			{{#each MessageList}}
 				<pre>[{{time}}]&nbsp;{{user}}:&nbsp;{{text}}&nbsp;&nbsp;<span class="badge badge-info">{{origin}}</span></pre>
@@ -66,3 +63,4 @@
 		</div>
 	</div>
 </template>
+

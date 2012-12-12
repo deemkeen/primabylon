@@ -149,6 +149,26 @@ if (Meteor.isClient) {
 
     };
 
+    Template.chat.rendered = function() {
+        var element = this.find("#chatbox");
+        if(element.clientHeight === element.scrollHeight) {
+            this.scrolledFlush = true;
+        } else if(this.scrolledFlush) {
+            element.scrollTop = element.scrollHeight - element.clientHeight;
+        }
+    };
+
+    Template.chat.events({
+        'scroll #chatbox': function(event, template) {
+            var e = event.target;
+            if(e.scrollTop === e.scrollHeight - e.clientHeight) {
+                template.scrolledFlush = true;
+            } else {
+                template.scrolledFlush = false;
+            }
+        }
+    });
+
     Template.hello.events({
 
         // Event handling the enter button
