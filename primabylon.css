@@ -7,21 +7,19 @@
 	bottom: 0;
 }
 
-
 #textlines {
 	margin: 0 auto;
 	width: 100%;
 }
 
-
 #chatbox {
-    margin-left: 0;
-    border: 1px solid #ccc;
-    overflow-y:auto;
-    height:300px;
-    margin-bottom:20px;
-    margin-top:20px;
-    position: relative;
+	margin-left: 0;
+	border: 1px solid #ccc;
+	overflow-y: auto;
+	height: 300px;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	position: relative;
 }
 
 #chatbox pre {
