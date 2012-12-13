@@ -187,15 +187,15 @@ if (Meteor.isClient) {
             if (code == 13) {
 
                 var text = $('#mymessage').val();
-                var curdate, curtime;
 
-                $.ajax({
-                    url: 'http://timeapi.org/utc/now.json', // synced time for every message
-                    dataType: 'jsonp'
-                })
-                .done(function(response) {
 
-                    curdate = new Date(response.dateString);
+                Meteor.call('getServerDate', function(error, curdate) { // synced time for every message
+
+                    if (error)
+                        console.log(error);
+
+
+                    curdate = new Date(curdate);
                     curtime = timeformat(curdate);
 
                     Messages.insert({
@@ -205,7 +205,7 @@ if (Meteor.isClient) {
                         created: curdate,
                         time: curtime,
                         languages: [Session.get("userlang")]
-                        });
+                    });
 
                     Translations.insert({
                         text: text,
@@ -215,7 +215,7 @@ if (Meteor.isClient) {
                         created: curdate,
                         time: curtime
                     });
-
+                  
                 });
 
                 Meteor.flush();
@@ -242,6 +242,7 @@ if (Meteor.isClient) {
 
 // Server-Part
 if (Meteor.isServer) {
+
     Meteor.startup(function() {
 
         Messages.remove({});
@@ -262,6 +263,13 @@ if (Meteor.isServer) {
             }
         });
 
+    });
+
+    Meteor.methods({ 
+      getServerDate: function() {
+        serverDate = new Date();
+        return serverDate;
+      }
     });
 
 }
