@@ -151,11 +151,16 @@ if (Meteor.isClient) {
 
     Template.chat.rendered = function() {
         var element = this.find("#chatbox");
+
         if(element.clientHeight === element.scrollHeight) {
             this.scrolledFlush = true;
-        } else if(this.scrolledFlush) {
+        } 
+        else if(this.scrolledFlush) {
             element.scrollTop = element.scrollHeight - element.clientHeight;
         }
+        else if(typeof this.scrolledFlush == "undefined") { //first time rendered
+            element.scrollTop = element.scrollHeight - element.clientHeight;
+        } 
     };
 
     Template.chat.events({
