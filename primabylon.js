@@ -150,6 +150,7 @@ if (Meteor.isClient) {
     };
 
     Template.chat.rendered = function() {
+
         var element = this.find("#chatbox");
 
         if(element.clientHeight === element.scrollHeight) {
@@ -176,6 +177,8 @@ if (Meteor.isClient) {
 
     Template.hello.events({
 
+
+
         // Event handling the enter button
         "keydown #mymessage": function(event) {
 
@@ -184,25 +187,35 @@ if (Meteor.isClient) {
             if (code == 13) {
 
                 var text = $('#mymessage').val();
-                var curdate = new Date();
-                var curtime = timeformat(curdate);
+                var curdate, curtime;
 
-                Messages.insert({
-                    text: text,
-                    user: Session.get("username"),
-                    userlang: Session.get("userlang"),
-                    created: curdate,
-                    time: curtime,
-                    languages: [Session.get("userlang")]
+                $.ajax({
+                    url: 'http://timeapi.org/utc/now.json', // synced time for every message
+                    dataType: 'jsonp'
+                })
+                .done(function(response) {
+
+                    curdate = new Date(response.dateString);
+                    curtime = timeformat(curdate);
+
+                    Messages.insert({
+                        text: text,
+                        user: Session.get("username"),
+                        userlang: Session.get("userlang"),
+                        created: curdate,
+                        time: curtime,
+                        languages: [Session.get("userlang")]
+                        });
+
+                    Translations.insert({
+                        text: text,
+                        user: Session.get("username"),
+                        userlang: Session.get("userlang"),
+                        origin: Session.get("userlang"),
+                        created: curdate,
+                        time: curtime
                     });
 
-                Translations.insert({
-                    text: text,
-                    user: Session.get("username"),
-                    userlang: Session.get("userlang"),
-                    origin: Session.get("userlang"),
-                    created: curdate,
-                    time: curtime
                 });
 
                 Meteor.flush();
