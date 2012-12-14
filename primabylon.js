@@ -3,6 +3,7 @@ var Messages = new Meteor.Collection("messages");
 var Translations = new Meteor.Collection("translations");
 var nowTranslated = false;
 var toTranslate = false;
+var diffDate;
 
 // helper function
 function addslashes(str) {
@@ -30,6 +31,17 @@ if (Meteor.isClient) {
     Meteor.startup(function() {
         Session.set("username", undefined);
         Session.set("userlang", undefined);
+
+        Meteor.call('getServerDate', function(error, serverdate) { //removeCall
+
+            if (error)
+                console.log(error);
+
+            // Difference between server and client date + latence time
+            diffDate = new Date(serverdate) - new Date();
+
+        });
+
     });
 
     // Yahoo Query Language Wrapper for jQuery
@@ -188,36 +200,28 @@ if (Meteor.isClient) {
 
                 var text = $('#mymessage').val();
 
+                curdate = new Date();
+                curdate = new Date(curdate.getTime() + diffDate); // Added diff from serverdate
+                curtime = timeformat(curdate);
 
-                Meteor.call('getServerDate', function(error, curdate) { // synced time for every message
-
-                    if (error)
-                        console.log(error);
-
-
-                    curdate = new Date(curdate);
-                    curtime = timeformat(curdate);
-
-                    Messages.insert({
-                        text: text,
-                        user: Session.get("username"),
-                        userlang: Session.get("userlang"),
-                        created: curdate,
-                        time: curtime,
-                        languages: [Session.get("userlang")]
-                    });
-
-                    Translations.insert({
-                        text: text,
-                        user: Session.get("username"),
-                        userlang: Session.get("userlang"),
-                        origin: Session.get("userlang"),
-                        created: curdate,
-                        time: curtime
-                    });
-                  
+                Messages.insert({
+                    text: text,
+                    user: Session.get("username"),
+                    userlang: Session.get("userlang"),
+                    created: curdate,
+                    time: curtime,
+                    languages: [Session.get("userlang")]
                 });
 
+                Translations.insert({
+                    text: text,
+                    user: Session.get("username"),
+                    userlang: Session.get("userlang"),
+                    origin: Session.get("userlang"),
+                    created: curdate,
+                    time: curtime
+                });
+                  
                 Meteor.flush();
                 $('#mymessage').val('');
 
@@ -267,8 +271,7 @@ if (Meteor.isServer) {
 
     Meteor.methods({ 
       getServerDate: function() {
-        serverDate = new Date();
-        return serverDate;
+        return new Date();
       }
     });
 
